@@ -1,8 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Your custom styles below */
+@import "tailwindcss";
 
 .ai-mentor {
     max-width: 1200px;
