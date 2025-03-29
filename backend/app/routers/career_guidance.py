@@ -84,6 +84,41 @@ router = APIRouter()
 class MentorQuery(BaseModel):
     query: str
 
+class UserSkills(BaseModel):
+    current_skills: List[str]
+    target_role: str
+    experience_level: str
+    location: str
+    
+class SalaryRequest(BaseModel):
+    role: str
+    location: str
+    experience_years: int
+    skills: List[str]
+
+class NetworkingRequest(BaseModel):
+    user_name: str
+    target_contact_role: str
+    shared_interests: List[str]
+    purpose: str
+    platform: str  # "linkedin" or "email"
+
+class PortfolioRequest(BaseModel):
+    target_role: str
+    current_skills: List[str]
+    experience_level: str
+    interests: List[str]
+
+class StressManagementRequest(BaseModel):
+    current_situation: str
+    stress_factors: List[str]
+    previous_strategies: Optional[List[str]]
+
+class ConfidenceRequest(BaseModel):
+    query: str
+    context: str
+    past_experiences: Optional[List[str]]
+
 class RoadmapRequest(BaseModel):
     career_field: str
     experience_level: str
@@ -231,6 +266,151 @@ async def get_success_stories():
         
     except Exception as e:
         logger.error(f"Error in get_success_stories: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/mentor/skills-gap")
+async def analyze_skills_gap(skills: UserSkills):
+    try:
+        logger.info(f"Analyzing skills gap for target role: {skills.target_role}")
+        
+        prompt = f"""As a career mentor, analyze the skills gap for this situation:
+        Current Skills: {', '.join(skills.current_skills)}
+        Target Role: {skills.target_role}
+        Experience Level: {skills.experience_level}
+        Location: {skills.location}
+
+        Please provide:
+        1. Missing Critical Skills: List the most important skills they need to develop
+        2. Skill Development Priority: Order the missing skills by importance
+        3. Learning Resources: Suggest specific resources for each missing skill
+        4. Timeline: Estimated time to acquire each skill
+        5. Practice Projects: Suggest real-world projects to build these skills"""
+        
+        response = model.generate_content(prompt)
+        return {"analysis": response.text if hasattr(response, 'text') else str(response)}
+    except Exception as e:
+        logger.error(f"Error in skills gap analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/mentor/salary-benchmark")
+async def get_salary_benchmark(request: SalaryRequest):
+    try:
+        logger.info(f"Getting salary benchmark for {request.role} in {request.location}")
+        
+        prompt = f"""As a career mentor with market insights, provide detailed salary information for:
+        Role: {request.role}
+        Location: {request.location}
+        Experience: {request.experience_years} years
+        Skills: {', '.join(request.skills)}
+
+        Please provide:
+        1. Salary Range: Entry, Mid, Senior levels
+        2. Market Demand: Current job market demand in the region
+        3. Compensation Factors: Key factors affecting salary
+        4. Industry Variations: How salary varies by industry
+        5. Future Outlook: Salary growth potential
+        6. Negotiation Tips: Key points for salary negotiation"""
+        
+        response = model.generate_content(prompt)
+        return {"benchmark": response.text if hasattr(response, 'text') else str(response)}
+    except Exception as e:
+        logger.error(f"Error in salary benchmarking: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/mentor/portfolio-guidance")
+async def get_portfolio_guidance(request: PortfolioRequest):
+    try:
+        logger.info(f"Generating portfolio guidance for {request.target_role}")
+        
+        prompt = f"""As a career mentor, suggest portfolio projects for:
+        Target Role: {request.target_role}
+        Current Skills: {', '.join(request.current_skills)}
+        Experience Level: {request.experience_level}
+        Interests: {', '.join(request.interests)}
+
+        Please provide:
+        1. Project Ideas: 3-5 portfolio project suggestions
+        2. Technical Stack: Recommended technologies for each project
+        3. Learning Outcomes: Skills demonstrated by each project
+        4. Implementation Steps: High-level implementation guide
+        5. Portfolio Presentation: How to present these projects effectively
+        6. Industry Relevance: Why these projects matter to employers"""
+        
+        response = model.generate_content(prompt)
+        return {"guidance": response.text if hasattr(response, 'text') else str(response)}
+    except Exception as e:
+        logger.error(f"Error in portfolio guidance: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/mentor/networking-script")
+async def generate_networking_script(request: NetworkingRequest):
+    try:
+        logger.info(f"Generating networking script for {request.platform}")
+        
+        prompt = f"""As a career mentor, create a personalized {request.platform} outreach message for:
+        User Name: {request.user_name}
+        Target Contact Role: {request.target_contact_role}
+        Shared Interests: {', '.join(request.shared_interests)}
+        Purpose: {request.purpose}
+
+        Please provide:
+        1. Outreach Message: Professional and personalized
+        2. Follow-up Templates: 2-3 follow-up message variations
+        3. Key Points: What makes this outreach effective
+        4. Customization Tips: How to adapt for different scenarios
+        5. Best Practices: Platform-specific etiquette tips"""
+        
+        response = model.generate_content(prompt)
+        return {"script": response.text if hasattr(response, 'text') else str(response)}
+    except Exception as e:
+        logger.error(f"Error in networking script generation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/mentor/confidence-building")
+async def build_confidence(request: ConfidenceRequest):
+    try:
+        logger.info("Processing confidence building request")
+        
+        prompt = f"""As a supportive career mentor, help build confidence by addressing:
+        Query: {request.query}
+        Context: {request.context}
+        Past Experiences: {', '.join(request.past_experiences) if request.past_experiences else 'Not provided'}
+
+        Please provide:
+        1. Reframing: Transform negative self-talk into positive perspectives
+        2. Evidence: Point out past successes and transferable skills
+        3. Action Steps: Specific actions to build confidence
+        4. Affirmations: Personalized professional affirmations
+        5. Success Stories: Relevant examples of others overcoming similar doubts"""
+        
+        response = model.generate_content(prompt)
+        return {"guidance": response.text if hasattr(response, 'text') else str(response)}
+    except Exception as e:
+        logger.error(f"Error in confidence building: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/mentor/stress-management")
+async def manage_stress(request: StressManagementRequest):
+    try:
+        logger.info("Processing stress management request")
+        
+        prompt = f"""As a career mentor with expertise in stress management, provide strategies for:
+        Current Situation: {request.current_situation}
+        Stress Factors: {', '.join(request.stress_factors)}
+        Previous Strategies: {', '.join(request.previous_strategies) if request.previous_strategies else 'None mentioned'}
+
+        Please provide:
+        1. Immediate Actions: Quick stress relief techniques
+        2. Long-term Strategies: Sustainable stress management practices
+        3. Professional Impact: How to maintain performance under stress
+        4. Boundary Setting: Professional boundary-setting techniques
+        5. Support Systems: How to build and utilize support networks
+        6. Warning Signs: How to recognize and prevent burnout"""
+        
+        response = model.generate_content(prompt)
+        return {"strategies": response.text if hasattr(response, 'text') else str(response)}
+    except Exception as e:
+        logger.error(f"Error in stress management: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Health check endpoint
